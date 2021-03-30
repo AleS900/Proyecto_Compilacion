@@ -1,0 +1,277 @@
+grammar edu.upb.lp.isc.ProyectoFinal with org.eclipse.xtext.common.Terminals
+
+generate proyectoFinal "http://www.upb.edu/lp/isc/ProyectoFinal"
+
+PseudoInicio:
+	(
+		'#lang' 'racket'
+	)? name=ID
+	(
+		'Definiciones:' 
+	 	arriba+=Arriba+
+	)?
+	(
+		'Ejecutables:'  
+		abajo+=Expresion+
+	)
+;
+Arriba:
+	'(' 
+		'define' 
+		'(' 
+			name=ID 
+			(parametro+=ID)*
+		')' 
+		expr+=Expresion+ 
+	')' 
+;
+
+LlamadoDeFuncion:
+	'('
+		fun=[Arriba] 
+		args+=Expresion* 
+	')'
+;
+
+Expresion:
+	 TipoDeDato| OperacionesConEnteros  | OperacionesConStrings  |
+	OperacionesConListas  | OperacionesConBoolean  | 
+	LlamadoDeFuncion  | OperaIf | Print
+;
+
+TipoDeDato:
+	Entero | CadenaTexto | Booleano | ExprListas 
+;
+//Expresiones Básicas
+Entero:
+ 	valor = INT
+;
+
+CadenaTexto:
+	str = STRING
+;
+
+Booleano:
+	bool ?= '#t' | {Booleano} '#f'
+;
+
+ExprListas:
+	'(' 
+		'list' 
+		expr+=Expresion+ 
+	')' 
+	| 
+	"'" '(' 
+		expr+=Expresion 
+	')'
+;
+
+//Operaciones con Enteros
+
+OperacionesConEnteros:
+	'(' 
+	    sgnOp=(
+	    	'+'|'-'|'*'|'/'
+	    )
+		sumando+=Expresion+
+	')'
+;
+
+//Operaciones con Strings
+
+OperacionesConStrings:
+	OpEsUnString | OpSubstring | OpConcatenar | OpLongitudStr 
+;
+
+OpEsUnString:
+	'(' 
+		'string?' 
+		expr=Expresion
+	')'
+;
+
+OpSubstring:
+	'(' 
+		'substring' 
+		expr=Expresion 
+		first=Entero 
+		(
+			second=Entero// no mas
+		)? 
+	')'
+;
+
+OpConcatenar:
+	'(' 
+		'string-append' 
+		str+=Expresion+  
+	')'
+;
+
+OpLongitudStr:
+	'(' 
+		'string-length'
+		str=Expresion 
+	')'
+;
+
+
+//Operaciones con Booleanos 
+
+OperacionesConBoolean:
+     OpEsBoolean | OperaNot | OperaAndOr | OperaIntegersToBoolean
+;
+
+OpEsBoolean:
+    '('
+    	'boolean' 
+    	'?' 
+    	(
+    		expr=Expresion
+    	)
+    ')'
+;
+
+OperaNot:
+	'(' 
+		'not' 
+		expr=Expresion 
+	')'
+;
+
+OperaAndOr:
+	'(' 
+		(
+			op=( 'and' | 'or' | 'nor' | 'nand' | 'xor') ///Warning in xor
+		) 
+		expr+=Expresion+
+	')'
+;
+
+OperaIntegersToBoolean:
+		'(' 
+		(
+			op= ('='| '>' | '<' | '>=' | '<=') ///Warning in xor
+		) 
+		expr+=Expresion+
+	')'
+;
+
+OperaIf:
+	'('
+		'if'
+				condicional=OperacionesConBoolean  
+				thenser+=Expresion+ 
+			(
+				'(' 
+				(elseser+=Expresion)+ 
+				')'
+			)? 
+	')'	
+;
+
+
+//Operaciones Con Listas
+
+OperacionesConListas:
+	LongitudLista | ElementoEnLaPoscicionX | ColaDeLaLista |ConcatenarListas | 
+	InvertirListas | RemoverUnElemento | ContieneElElemento|
+	OperacionesConPares
+;
+
+LongitudLista:
+	'(' 
+		'length' 
+		soyunalista+=Expresion
+	')'
+;
+
+ElementoEnLaPoscicionX:
+	'(' 
+		'list-ref' 
+		soyunalista=Expresion 
+		val=Entero 
+	')'	
+;
+
+ColaDeLaLista:
+	'(' 
+		'list-tail' 
+		soyunalista=Expresion 
+		val=Entero 
+	')'	
+;
+
+ConcatenarListas:
+	'(' 
+		'append' 
+		soyunalista+=Expresion+ 
+	')'
+;
+
+InvertirListas:
+	'(' 
+		'reverse' 
+		lisoyunalistast=Expresion 
+	')'
+;
+
+RemoverUnElemento:
+	'(' 
+		'remove' 
+		expr=Expresion 
+		soyunalista=Expresion 
+		(
+			'='
+		)? 
+	')'
+;
+
+ContieneElElemento:
+	'('	'member' 
+		expr=Expresion 
+		soyunalista=Expresion 
+	')'
+;
+
+////Operaciones Con Pares
+
+OperacionesConPares:
+	OperaCons | OperaCar | OperaCdr
+;
+
+OperaCons:
+	'(' 
+		'cons' 
+		expr1=Expresion 
+		expr2=Expresion
+	')'
+;
+
+OperaCar:
+	'(' 
+		'car' 
+		parsito=Expresion 
+	')'
+;
+
+OperaCdr:
+	'(' 
+		'cdr' 
+		parsito=Expresion 
+	')'	
+;
+
+//Otras Operaciones
+Print:
+	 '(' 
+	 	'print'  
+	 	expr=Expresion 
+	 ')' 
+	 | 
+	 '"' 
+	 expr=Expresion 
+	 '"'
+;
+
+
